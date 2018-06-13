@@ -47,6 +47,7 @@ initial_infection <- as.matrix(initialPopulation)
 number_of_hosts = number_of_hosts
 
 ## define matrices for infected species of interest
+## This is a set of nested if Statements (not properly tabbed)
 if (number_of_hosts>0){
   I_host1 <- matrix(0, nrow=n_rows, ncol=n_cols)
   host1_rast[is.na(host1_rast)]<- 0
@@ -264,20 +265,29 @@ spore_rate <- sporeRate
 
 #time counter to access pos index in weather raster stacks
 cnt <- 0 
-
+crit_cnt <- 0
 ## ----> MAIN SIMULATION LOOP (weekly time steps) <------
 for (tt in tstep){
   
-    ## check if there are any susceptible host2 left on the landscape (IF NOT continue LOOP till the end)
+    ## check if there are any susceptible host left on the landscape (IF NOT continue LOOP till the end)
     if(!any(S_host1 > 0)) break
     
-    ## update week counter
+    ## update counter
     cnt <- cnt + 1
     
-    ## is current week time step within a spread month (as defined by input parameters)?
+    ## add in removal of infected hosts when 
+    if (tt == crit_limit_check){
+      crit_limit_check <- crit_limit_check[-1]
+      crit_cnt <- crit_cnt + 1
+      if(any(I_matrix_list[[1]][crit_temp < -12.87] > 0)) {
+        S_matrix_list[[1]][crit_temp[crit_cnt] < -12.87] <- S_matrix_list[[1]][crit_temp[crit_cnt] < -12.87] + I_matrix_list[[1]][crit_temp[crit_cnt] < -12.87]
+        I_matrix_list[[1]][crit_temp[crit_cnt] < -12.87] <- 0
+      } 
+    }
+    
+    ## is current time step within a spread month (as defined by input parameters)?
     if (seasonality == 'YES' & !any(substr(tt,6,7) %in% months_msk)) next
     
-    ## Total weather suitability:
     ## Total weather suitability:
     if (tempQ == "YES" && precipQ == "YES") {
       weather_suitability <- mcf.array[,,cnt] * ccf.array[,,cnt]
@@ -383,10 +393,12 @@ for (tt in tstep){
     
     # 3) values as 0 (non infected) and 1 (infected) cell
     #I_host2_rast[] <- ifelse(I_host2_rast[] > 0, 1, 0) 
-    #I_host2_rast[] <- ifelse(I_host2_rast[] > 0, 1, NA) 
-      ## This is a set of nested if Statements
+    #I_host2_rast[] <- ifelse(I_host2_rast[] > 0, 1, NA)
+    
+      
     if (cnt %in% yearlyoutputlist){
       yearTracker = yearTracker+1
+      ## This is a set of nested if Statements
       if (number_of_hosts>0){
         I_host1_rast[] <- I_matrix_list[[1]]
         I_host1_rast[] <- ifelse(I_host1_rast[] == 0, NA, I_host1_rast[])
@@ -448,20 +460,12 @@ for (tt in tstep){
         dataForOutput$infectedHost10Individuals[yearTracker] <- sum(na.omit(I_host10_rast@data@values))/1000
         dataForOutput$infectedHost10Area[yearTracker] <- ncell(na.omit(I_host10_rast@data@values))*res_area 
                         }}}}}}}}}}
-      # yearTracker = yearTracker+1
-      # I_host1_stack <- stack(I_host1_rast, I_host1_stack)
-      # I_host2_stack <- stack(I_host2_rast, I_host2_stack)
-      # dataForOutput$infectedHost1Individuals[yearTracker] <- sum(na.omit(I_host1_rast@data@values))/1000
-      # dataForOutput$infectedHost1Area[yearTracker] <- ncell(na.omit(I_host1_rast@data@values))*res(I_host1_rast)[2]*res(I_host1_rast)[1]
-      # dataForOutput$infectedHost2Individuals[yearTracker] <- sum(na.omit(I_host2_rast@data@values))/1000
-      # dataForOutput$infectedHost2Area[yearTracker] <- ncell(na.omit(I_host2_rast@data@values))*res(I_host2_rast)[2]*res(I_host2_rast)[1]
+
     }
-    
-  # }
   
 }
 
-## switch the order so that it is from start of simulation to end and label the bands
+## switch the order so that it is from start of simulation to end and label the bands and add to output list
 if (number_of_hosts>0){
   I_host1_stack <- subset(I_host1_stack, order(seq(nlayers(I_host1_stack)-1, 1, -1)))
   names(I_host1_stack) <- years
@@ -513,8 +517,6 @@ if (number_of_hosts>9){
   data[[2]] <- data[[2]]+I_host10_stack
   data[[12]] <- I_host10_stack
 }}}}}}}}}}
-
-# data <- list(dataForOutput, I_host2_stack, I_host1_stack, I_host3_stack)
 
 return(data)
 }

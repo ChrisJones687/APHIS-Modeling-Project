@@ -249,17 +249,16 @@ for (scale in scales) {
 
 
 ## Test changes to model for Generalizability
-host1_rast = raster("C:/Users/Chris/Dropbox/Projects/APHIS/Ailanthus/ToF.tif")
+host1_rast = raster("C:/Users/Chris/Dropbox/Projects/APHIS/Ailanthus/Treeofheaven.tif")
 allTrees = raster("C:/Users/Chris/Dropbox/Projects/APHIS/Ailanthus/totalhost.tif")
-initialPopulation = raster ("C:/Users/Chris/Dropbox/Projects/APHIS/Ailanthus/2014Initial.tif")
-start = 2015
-end = 2017
-time_step ="weeks"
+initialPopulation = raster("C:/Users/Chris/Dropbox/Projects/APHIS/Ailanthus/2017Infestation.tif")
+start = 2017
+end = 2027
 seasonality = 'YES'
 s1 = 6
 s2 = 11
 sporeRate =3 ## spore rate default of original attempt
-tempData = 'G:/DaymetUS/SLF_area/WeatherCoeff/c_coef_2015_2017_slfarea.tif'
+tempData = 'G:/DaymetUS/SLF_area/WeatherCoeff/g_coef_2017_2027_slfarea.tif'
 host1_score = 10
 number_of_hosts = 1
 tempQ = "YES"
@@ -269,5 +268,12 @@ kernelType = "Cauchy"
 scale1 = 50
 seed_n = 20
 time_step = "months"
+crit_limit_month = 01
+crit_limit_check = "2017-01-01"
+for (i in start:end){
+  crit_limit_check <- c(crit_limit_check, paste(i,'-01-01',sep = ''))
+}
+crit_limit_check <- crit_limit_check[-1]
+crit_temp = stack('G:/DaymetUS/SLF_area/WeatherCoeff/g_coef_2017_2027_slfarea.tif')
 
 host_score <- rep(host1_score,10)
