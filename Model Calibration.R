@@ -274,6 +274,7 @@ for (i in start:end){
   crit_limit_check <- c(crit_limit_check, paste(i,'-01-01',sep = ''))
 }
 crit_limit_check <- crit_limit_check[-1]
-crit_temp = stack('G:/DaymetUS/SLF_area/WeatherCoeff/g_coef_2017_2027_slfarea.tif')
-
+crit_temp = stack('G:/DaymetUS/SLF_area/WeatherCoeff/crit_temp_2017_2027_slfarea2.tif')
+crit_temp[is.na(crit_temp)] <- 0
+crit_temp <- as.array(crit_temp)
 host_score <- rep(host1_score,10)

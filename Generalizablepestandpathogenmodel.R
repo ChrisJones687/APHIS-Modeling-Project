@@ -25,10 +25,11 @@ pest <- function(host1_rast, host1_score = NULL, host2_rast=NULL, host2_score=NU
 # source('scripts/myfunctions_SOD.r') # loads custom functions for dispersal using R
 sourceCpp("scripts/myCppFunctions2.cpp") # load custom functions dispersal that use C++ (Faster)
 source("scripts/myfunctions_SOD.r")
-  
+
 host_score <- c(host1_score, host2_score, host3_score, host4_score, host5_score, host6_score, host7_score, host8_score, host9_score, host10_score)
 host_score[(number_of_hosts+1):10] <-0
 host_score <- host_score/10
+
 ## All live trees (for calculating the proportion of infected) (tree density per hectare)
 all_trees_rast <- allTrees
 all_trees_rast[is.na(all_trees_rast)]<- 0
@@ -266,6 +267,7 @@ spore_rate <- sporeRate
 #time counter to access pos index in weather raster stacks
 cnt <- 0 
 crit_cnt <- 0
+
 ## ----> MAIN SIMULATION LOOP (weekly time steps) <------
 for (tt in tstep){
   
@@ -275,13 +277,12 @@ for (tt in tstep){
     ## update counter
     cnt <- cnt + 1
     
-    ## add in removal of infected hosts when 
-    if (tt == crit_limit_check){
-      crit_limit_check <- crit_limit_check[-1]
+    ## add in removal of infected hosts when some critical limit is met (note: to generalize will need to replace of -12.87 and "-01-01". Maybe other steps as well)
+    if (substr(tt,5,10) == "-01-01"){
       crit_cnt <- crit_cnt + 1
-      if(any(I_matrix_list[[1]][crit_temp < -12.87] > 0)) {
-        S_matrix_list[[1]][crit_temp[crit_cnt] < -12.87] <- S_matrix_list[[1]][crit_temp[crit_cnt] < -12.87] + I_matrix_list[[1]][crit_temp[crit_cnt] < -12.87]
-        I_matrix_list[[1]][crit_temp[crit_cnt] < -12.87] <- 0
+      if(any(I_matrix_list[[1]][crit_temp[,,crit_cnt] < -12.87] > 0)) {
+        S_matrix_list[[1]][crit_temp[,,crit_cnt] < -12.87] <- S_matrix_list[[1]][crit_temp[,,crit_cnt] < -12.87] + I_matrix_list[[1]][crit_temp[,,crit_cnt] < -12.87]
+        I_matrix_list[[1]][crit_temp[,,crit_cnt] < -12.87] <- 0
       } 
     }
     
